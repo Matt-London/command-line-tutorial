@@ -7,10 +7,10 @@ from packages.filesystem.File import File
 
 
 di = Directory("Test")
-di.add(Directory("Banana"))
-di.add(File("Test"))
-di.get("Test").append("Hello World!")
+di.mkdir("ls")
+di.mkdir("lsg")
 
-print(di.get("Test").read())
+sub = di.contents[0]
+sub.mkdir("Test2")
 
 di.ls()
