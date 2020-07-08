@@ -1,9 +1,9 @@
-from levels.Level import Level
-import levels.levels as Levels
-import resources.functions as function
-import resources.variables as var
-from filesystem.Directory import Directory
-from filesystem.File import File
+from packages.levels.Level import Level
+import packages.levels.levels as Levels
+import packages.resources.functions as function
+import packages.resources.variables as var
+from packages.filesystem.Directory import Directory
+from packages.filesystem.File import File
 
 
 di = Directory("Test")

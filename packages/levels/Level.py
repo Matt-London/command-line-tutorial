@@ -1,4 +1,4 @@
-from resources import functions as function
+from ..resources import functions as function
 # The template of all levels
 class Level:
     # Basic constructor

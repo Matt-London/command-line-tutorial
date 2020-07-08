@@ -1,4 +1,4 @@
-from resources.colors import colors
+from ..resources.colors import colors
 class Directory:
     # Basic constructor
     def __init__(self, name="", container=None, contents=[]):
