@@ -1,4 +1,6 @@
 from ..resources.colors import colors
+from ..resources import variables as var
+
 class Directory:
     # Basic constructor
     def __init__(self, name="", container=None, contents=[]):
@@ -27,6 +29,30 @@ class Directory:
         ind = self.index(neededName)
         if ind >= 0:
             return self.contents[ind]
+
+    # Returns true if it has at least one sub directory
+    def has_sub(self):
+        for content in self.contents:
+            if type(content) == Directory:
+                return True
+        return False
+    
+    # Iterates through, looks for slashes and goes to subs (recursion, ooooh!)
+    def get_sub(self, path=""):
+        if not self.has_sub() or path == "":
+            return self
+        
+        pathSplit = path.split("/")
+        nextDir = self.index(pathSplit[0])
+        
+        if nextDir >= 0:
+            return self.contents[nextDir]
+        
+        pathSplit.pop(0)
+        path = "/".join(pathSplit)
+        return self.get_sub(path)
+
+
         
             
 
@@ -45,9 +71,14 @@ class Directory:
     def rm(self, toDelete):
         ind = self.index(toDelete)
         if ind >= 0:
-            self.contents.remove(ind)
+            self.contents.pop(ind)
             return True
         else:
             return False
+    
+    # Make new dir
+    def mkdir(self, name=""):
+        if name:
+            self.add(Directory(name))
             
         
