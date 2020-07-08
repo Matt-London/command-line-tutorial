@@ -8,6 +8,11 @@ class File:
     def append(self, text=""):
         self.contents += text
     
+    # Overwrites the files's text
+    def write(self, text=""):
+        self.contents = text
+
     # Returns the text
     def read(self):
         return self.contents
+
