@@ -9,12 +9,13 @@ from packages.filesystem.File import File
 di = Directory("Test")
 
 di.mkdir("one")
-di.mkdir("two")
+di.mkdir("one/three")
+di.touch("one/three/four")
 
-di.get_sub("one").mkdir("three")
+di.ls("one/three")
 
-di.get_sub("one/three").mkdir("four")
+di.rm("one/three/four")
+
+di.ls("one/three")
 
 di.ls()
-di.get_sub("one").ls()
-di.get_sub("one/three").ls()
