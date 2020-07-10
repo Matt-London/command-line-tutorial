@@ -1,0 +1,3 @@
+With regards to raised issue. It seems that mkdir() does not create
+a recognizeable folder. So when this folder is called upon, it cannot access it.
+This causes it to resort to returning self as it doesn't see any sub dirs
