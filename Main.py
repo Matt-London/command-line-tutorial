@@ -7,10 +7,14 @@ from packages.filesystem.File import File
 
 
 di = Directory("Test")
-di.mkdir("ls")
-di.mkdir("lsg")
 
-sub = di.contents[0]
-sub.mkdir("Test2")
+di.mkdir("one")
+di.mkdir("two")
+
+di.get_sub("one").mkdir("three")
+
+di.get_sub("one/three").mkdir("four")
 
 di.ls()
+di.get_sub("one").ls()
+di.get_sub("one/three").ls()
