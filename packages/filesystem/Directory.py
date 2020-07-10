@@ -3,10 +3,9 @@ from ..resources import variables as var
 
 class Directory:
     # Basic constructor
-    def __init__(self, name="", container=None, contents=[]):
+    def __init__(self, name=""):
         self.name = name
-        self.container = container
-        self.contents = contents
+        self.contents = []
     
     # grabs index of contents by name
     def index(self, find):
@@ -39,18 +38,19 @@ class Directory:
     
     # Iterates through, looks for slashes and goes to subs (recursion, ooooh!)
     def get_sub(self, path=""):
-        if not self.has_sub() or path == "":
+        if path == "":
             return self
         
         pathSplit = path.split("/")
         nextDir = self.index(pathSplit[0])
         
-        if nextDir >= 0:
-            return self.contents[nextDir]
-        
         pathSplit.pop(0)
         path = "/".join(pathSplit)
-        return self.get_sub(path)
+
+        if nextDir >= 0:
+            return self.contents[nextDir].get_sub(path)
+        
+        return None
 
 
         
