@@ -1,4 +1,5 @@
 from ..filesystem.Directory import Directory
+from ..resources import variables as var
 
 
 class Interpreter:
@@ -108,7 +109,7 @@ class Interpreter:
             self._return = -1
 
         if self._return < 0:
-            print("sh: '%s': command not found" % command[0].replace("\n", "\\n"))
+            print(var.shell + ": '%s': command not found..." % command[0].replace("\n", "\\n"))
             self._return = 127
 
         return True
