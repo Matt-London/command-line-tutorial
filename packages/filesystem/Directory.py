@@ -44,6 +44,9 @@ class Directory:
         
         pathSplit = path.split("/")
         nextDir = self.index(pathSplit[0])
+
+        if nextDir < 0:
+            return False
         
         pathSplit.pop(0)
         path = "/".join(pathSplit)
@@ -53,7 +56,7 @@ class Directory:
                 return self.contents[nextDir]
             return self.contents[nextDir].get_sub(path)
         
-        print("get_sub error")
+        # print("get_sub error")
 
     # Delete file/dir by name:
     def delete(self, path=""):
@@ -76,7 +79,11 @@ class Directory:
 
     # List all contents in directory
     def ls(self, path=""):
+        if not self.get_sub(path):
+            print("ls: cannot access '{}': No such file or directory".format(path))
+            return False
         destContents = self.get_sub(path).contents
+
         lenContent = len(self.get_sub(path).contents)
 
         for content in destContents:
