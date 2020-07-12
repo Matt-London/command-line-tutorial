@@ -13,6 +13,7 @@ interpreter = Interpreter(folder)
 
 for i in range(10):
     folder.add(File("file_" + str(i)))
+    folder.add(Directory("directory_" + str(i)))
 
 while True:
     print(var.ps1, end=" ")
