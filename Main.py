@@ -6,14 +6,17 @@ from packages.filesystem.Directory import Directory
 from packages.filesystem.File import File
 from packages.parser.interpreter import Interpreter
 
+globals()["callable"] = None
+
 folder = Directory("/")
 interpreter = Interpreter(folder)
 
 for i in range(10):
     folder.add(File("file_" + str(i)))
 
-cmds = ["ls", "ls -a 'a b ca' \"banana bread'\"", "ls -a '", "ls -a '", "rgoajgiuehgetyhgiuethgyu"]
+while True:
+    print(var.ps1, end=" ")
+    while not interpreter.interpret(input()):
+        print(">", end=" ")
 
-for cmd in cmds:
-    if interpreter.interpret(cmd):
-        print("Returned with exit code " + str(interpreter.get_return_code()))
+    print("Exit code " + str(interpreter.get_return_code()))

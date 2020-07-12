@@ -3,16 +3,9 @@ from ..filesystem.Directory import Directory
 
 class Interpreter:
 
-    _history = None
-    _directory = None
-
-    _return = -1
-    _cmd = None
-
-    _command_mapping = None
-
     _default_command_mapping = {
-        "ls": lambda instance, *args: instance.get_directory().ls()
+        "ls":  lambda instance, *args: instance.get_directory().ls(),
+        "pwd": lambda instance, *args: print(instance.get_directory().name)
     }
 
     def __init__(self, directory=None, commands=None):
@@ -21,21 +14,53 @@ class Interpreter:
         if not directory:
             directory = Directory("/")
 
+        self._command_mapping = {}
+
         if not commands:
             commands = self._default_command_mapping
 
-        self._command_mapping = commands
+        for name, cmd in commands.items():
+            if not self.add_command(name, cmd):
+                raise ValueError("unable to add command %s (%s) - somehow conflicts with another command" % (name, cmd))
+
         self._directory = directory
+        self._return = 0
         self._cmd = []
 
     def get_directory(self):
         return self._directory
 
     def get_history(self):
-        return self._history
+        return list(self._history)
 
     def get_return_code(self):
         return self._return
+
+    def get_commands(self):
+        return set(self._command_mapping)
+
+    def add_command(self, name, command, force=False):
+        try:
+            is_func = callable(command)
+        except (UnboundLocalError, TypeError):
+            globals()["callable"] = lambda obj: hasattr(obj, '__call__')
+            is_func = callable(command)
+
+        if not is_func:
+            raise ValueError("provided command '%s' (value: %s) is not a function" % (name, command))
+
+        if force or not (name in self._command_mapping):
+            self._command_mapping[name] = command
+            return True
+
+        return False
+
+    def remove_command(self, name):
+        if name in self._command_mapping:
+            self._command_mapping.pop(name)
+            return True
+
+        return False
 
     def interpret(self, line):
         if not line:
@@ -74,7 +99,7 @@ class Interpreter:
         self._history.append(cmd_str)
         self._cmd = []
 
-        print("Executing " + str(command))
+        # print("Executing " + str(command))
 
         try:
             self._return = self._evaluate(command[0], *command[1:])
@@ -83,7 +108,8 @@ class Interpreter:
             self._return = -1
 
         if self._return < 0:
-            print("sh: %s: command not found" % command[0])
+            print("sh: '%s': command not found" % command[0].replace("\n", "\\n"))
+            self._return = 127
 
         return True
 
@@ -104,7 +130,7 @@ class Interpreter:
             ret = 127 + (ret % 127)
 
         if ret > 127:
-            ret = ret - 127*(ret // 127)
+            ret %= 127
 
         return ret
 
