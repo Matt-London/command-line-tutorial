@@ -1,11 +1,12 @@
 from ..filesystem.Directory import Directory
+from ..resources.commands import Commands
 from ..resources import variables as var
 
 
 class Interpreter:
 
     _default_command_mapping = {
-        "ls":  lambda instance, *args: instance.get_directory().ls(),
+        "ls":  lambda instance, *args: Commands.ls(instance.get_directory().get_sub(args[0]) if args else instance.get_directory()),
         "pwd": lambda instance, *args: print(instance.get_directory().name)
     }
 
