@@ -11,3 +11,5 @@ ps1 = colors.fg.lightblue + username + colors.fg.darkgrey + "@" + colors.fg.red 
 
 bash_history = [] # Saves all ran commands
 currentLevel = 1 # contains current levels
+
+args = [] # Contains current args for current command
