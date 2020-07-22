@@ -1,5 +1,4 @@
 from ..resources.colors import colors
-from ..resources import variables as var
 from .File import File
 
 class Directory:
@@ -129,13 +128,20 @@ class Directory:
     # Make new dir
     def mkdir(self, path=""):
         if path:
+            # Check if the name already exists
+            if self.get_sub(path):
+                print("mkdir: cannot create directory '{}': File exists".format(path))
+                return False
             pathSplit = path.split("/")
             if len(pathSplit) == 1:
                 self.add(Directory(pathSplit[0]))
+                return True
 
             name = pathSplit.pop()
             path = "/".join(pathSplit)
             self.get_sub(path).add(Directory(name))
+            return True
+        return False
     
     # Rename/move anything
     def mv(self, orig="", final=""):
