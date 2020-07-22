@@ -4,7 +4,7 @@ from . import variables as var
 def check(needed=()):
     # Loop through needed param
     for command in needed:
-        if command not in var.bash_history:
+        if command not in var.lev_bash_history:
             # If this isn't in it, it must return false
             return False
 
