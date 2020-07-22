@@ -14,10 +14,9 @@ python3 Main.py
 Placeholder
 
 ## Usage
-
-**Coming in the near future**
+Enter commands as in a standard terminal
 ```
-PLACEHOLDER
+user@computer:[~/] > $ 
 ```
 
 ## Contributing
