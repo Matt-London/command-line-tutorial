@@ -68,8 +68,7 @@ class Interpreter:
 
         # Check if it's a special command
         if commands.special(command):
-            var.exit_code = 20
-            return 20
+            return var.exit_code
 
         # Check if it's a banned command
         if commands.is_banned(command):
