@@ -8,6 +8,9 @@ from packages.parser.Interpreter import Interpreter
 
 interpreter = Interpreter()
 
+# Put test dir in interpreter
+# interpreter.process("mkdir test")
+
 while True:
     try:
         interpreter.prompt()
