@@ -216,10 +216,10 @@ def filesystem(command=""):
         elif len(token) > 1:
             first = token.pop(0)
             print("{}:".format(first))
-            self.workingDir.ls(first)
+            var.workingDir.ls(first)
             for path in token:
                 print("\n{}:".format(path))
-                self.workingDir.ls(path)
+                var.workingDir.ls(path)
             
             var.exit_code = 0
             return True
