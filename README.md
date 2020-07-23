@@ -10,13 +10,31 @@ You can do the following to execute:
 python3 Main.py
 ```
 
-## Levels
-Placeholder
-
 ## Usage
 Enter commands as in a standard terminal
 ```
 user@computer:[~/] > $ 
+```
+
+## Levels
+To get all level commands:
+```
+$ level
+```
+
+For tasks in current level:
+```
+$ level instruct
+```
+
+For help with current level:
+```
+$ level instruct
+```
+
+To check if you have completed the level, and move on to the next level:
+```
+$ level check
 ```
 
 ## Contributing
