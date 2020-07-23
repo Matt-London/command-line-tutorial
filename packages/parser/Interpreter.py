@@ -22,7 +22,9 @@ class Interpreter:
 
     # Prompts and takes input, returns exit code
     def prompt(self):
-        print(var.ps1, end=" ")
+        var.wd = self.workingDir.get_path()[1::]
+        ps1 = colors.fg.lightblue + var.username + colors.fg.darkgrey + "@" + colors.fg.red + var.hostname + colors.fg.lightcyan + ":" + colors.fg.cyan + "[~" + var.wd + "] " + colors.fg.black + "> " + colors.fg.pink + "$#  "[var.isRoot] + colors.reset # Sets PS1
+        print(ps1, end=" ")
         self.command = input()
         return self.process(self.command)
 
@@ -54,6 +56,11 @@ class Interpreter:
         token = command.split(" ")
         self.token = command.split(" ")
 
+        # Save vars to var
+        var.token = self.token
+        var.headDir = self.headDir
+        var.workingDir = self.workingDir
+
         # Check if it is a level command
         if commands.game_process(command):
             var.exit_code = 137
@@ -70,8 +77,17 @@ class Interpreter:
             return 110
 
         # Run filesystem command
-        if self.filesystem(command):
+        if commands.filesystem(command):
+            # Save var to current vars
+            self.token = var.token
+            self.headDir = var.headDir
+            self.workingDir = var.workingDir
             return var.exit_code
+
+        # Save var to current vars
+        self.token = var.token
+        self.headDir = var.headDir
+        self.workingDir = var.workingDir
 
         # Command not found
         var.exit_code = 127
@@ -79,123 +95,7 @@ class Interpreter:
         return 127
 
 
-
-    # Contains commands run on Directory
-    # Needs to be here to avoid circular import that 'technically' works
-    def filesystem(self, command=""):
-        verbose = False
-        token = self.token
-
-        # mkdir command
-        if token[0] == "mkdir":
-            token.pop(0)
-            if "-v" in token:
-                verbose = True
-                token.remove("-v")
-
-            if "--verbose" in token:
-                verbose = True
-                token.remove("--verbose")
-
-            if len(token) == 0:
-                print("mkdir: missing operand")
-                var.exit_code = 1
-                return True
-
-            if len(token) > 0:
-                for arg in token:
-                    success = self.workingDir.mkdir(arg)
-                    if verbose and success:
-                        print("mkdir: created directory '{}'".format(arg))
-                var.exit_code = 0
-                return True
-        
-            return False
-
-        # ls command
-        elif token[0] == "ls":
-            token.pop(0)
-            if len(token) == 0:
-                self.workingDir.ls()
-                var.exit_code = 0
-                return True
-
-            elif len(token) == 1:
-                self.workingDir.ls(token[0])
-                var.exit_code = 0
-                return True
-            
-            elif len(token) > 1:
-                first = token.pop(0)
-                print("{}:".format(first))
-                self.workingDir.ls(first)
-                for path in token:
-                    print("\n{}:".format(path))
-                    self.workingDir.ls(path)
-                
-                var.exit_code = 0
-                return True
-            
-            else:
-                return False
-            return False
-        
-        # touch command
-        elif token[0] == "touch":
-            token.pop(0)
-            
-            if len(token) == 0:
-                print("touch: missing file operand")
-                var.exit_code = 1
-                return True
-            
-            for path in token:
-                self.workingDir.touch(path)
-            var.exit_code = 0
-            return True
-        
-        # rm command
-        elif token[0] == "rm":
-            token.pop(0)
-            
-            # Check if recursive
-            recurse = False
-            if "-r" in token:
-                recurse = True
-                token.remove("-r")
-
-            elif "-rf" in token:
-                recurse = True
-                token.remove("-rf")
-            
-            # Make sure args are present
-            if len(token) == 0:
-                print("rm: missing operand")
-                var.exit_code = 1
-                return True
-
-            # Run the command
-            for x in token:
-                self.workingDir.rm(x, recurse)
-            var.exit_code = 0
-            return True
-            
-        # rmdir command
-        elif token[0] == "rmdir":
-            token.pop(0)
-
-            # Check if no args
-            if len(token) == 0:
-                print("rmdir: missing operand")
-                var.exit_code = 1
-                return True
-            
-            # Run command
-            for x in token:
-                self.workingDir.rmdir(x)
-            
-            var.exit_code = 0
-            return True
+    
 
 
                 
