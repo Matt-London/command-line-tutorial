@@ -1,3 +1,5 @@
+import copy
+
 from ..resources.colors import colors
 from ..resources import variables as var
 from .File import File
@@ -176,79 +178,130 @@ class Directory:
             var.exit_code = 1
             return False
 
-        # Check if we're moving a file or dir
-        if self.get_sub(final):
-            # Save from and to objects
-            fromf = self.get_sub(orig)
-            tof = self.get_sub(final)
-
-            if type(tof) == File:
-                print("mv: destination '{}' exists".format(final))
-                var.exit_code = 1
-                return False
-            elif type(tof) == Directory:
-                # Move if dir
-                if type(fromf) == Directory:
-                    tof.mkdir(fromf.name)
-                    tof.copy_from(fromf, "temp")
-                    newName = fromf.name
-                    self.delete(orig)
-                    self.get_sub(final + "/temp").name = newName
-                    var.exit_code = 0
-                    return True
-                # Move if file
-                elif type(self.get_sub(orig)) == File:
-                    tof.touch("temp")
-                    self.get_sub(final + "/temp").copy_from(fromf, "temp")
-                    newName = self.get_sub(orig).name
-                    self.delete(orig)
-                    self.get_sub(final + "/temp").name = newName
-                    var.exit_code = 0
-                    return True
-        # Check if looking for a move and a rename
-        elif type(self.get_container(final)) == Directory:
-            finalS = final.split("/")
-            name = finalS.pop(-1)
-
-            # Move if dir
-            if type(self.get_sub(orig)) == Directory:
-                self.get_container(final).mkdir(name)
-                self.get_container(final).copy_from(self.get_sub(orig), "temp")
-                self.delete(orig)
-                if len(finalS) >= 1:
-                    self.get_sub("/".join(finalS) + "/temp").name = name
-                else:
-                    self.get_sub("temp").name = name
-                var.exit_code = 0
-                return True
-            # Move if file
-            elif type(self.get_sub(orig)) == File:
-                self.get_sub(final).touch(name)
-                self.get_sub(final).copy_from(self.get_sub(orig), "temp")
-                self.delete(orig)
-                self.get_sub(final + "/temp").name = name
-                var.exit_code = 0
-                return True
-                
-        if type(self.get_sub(orig)) == Directory:
-            self.mkdir(final)
-            self.get_sub(final).copy_from(self.get_sub(orig), final.split("/")[len(final.split("/")) - 1])
-            self.delete(orig)
-            var.exit_code = 0
-            return True
-        
-        elif type(self.get_sub(orig)) == File:
-            self.touch(final)
-            self.get_sub(final).copy_from(self.get_sub(orig), final.split("/")[len(final.split("/")) - 1])
-            self.delete(orig)
-            var.exit_code = 0
-            return True
-        
-        else:
-            print("MV ERROR")
+        # Check if destination is a file exists
+        if self.get_sub(final) and type(self.get_sub(final)) == File:
+            print("mv: destination exists")
             var.exit_code = 1
             return False
+        
+        # Move file by copying and deleting old
+        if self.cp(orig, final, True, True):
+            self.get_container(orig).delete(orig.split("/")[-1])
+        var.exit_code = 0
+        return True
+
+    # Copy anything, anywhere
+    def cp(self, orig="", final="", recurse=False, fromMv=False):
+        # Make sure both are entered
+        if not orig and not final:
+            if not fromMv:
+                print("cp: missing file operand")
+            var.exit_code = 1
+            return False
+        
+        # Check if no final is entered
+        if not final:
+            if not fromMv:
+                print("cp: missing destination file operand after '{}'".format(orig))
+            var.exit_code = 1
+            return False
+
+        # Make sure source exists
+        if not self.get_sub(orig):
+            if not fromMv:
+                print("cp: cannot stat '{}': No such file or directory".format(orig))
+            var.exit_code = 1
+            return False
+        
+        # Check if dest exists and is a file
+        if self.get_sub(final) and type(self.get_sub(final)) == File:
+            if not fromMv:
+                print("cp: destination exists")
+            var.exit_code = 1
+            return False
+
+        # Check if recurse flag is needed
+        if not fromMv and not recurse and type(self.get_sub(orig)) == Directory:
+            print("cp: -r not specified; omitting directory '{}'".format(orig))
+            var.exit_code = 1
+            return False
+        
+        # Copy if source is file
+        if type(self.get_sub(orig)) == File:
+            dest = None
+            name = ""
+            # Check if dest is a folder
+            if type(self.get_sub(final)) == Directory:
+                dest = self.get_sub(final)
+                name = self.get_sub(orig).name
+
+                # Exit if dest exists
+                if dest.index(name) >= 0:
+                    var.exit_code = 1
+                    return False
+    
+            # Check if dest doesn't exist, but container does
+            elif not self.get_sub(final) and type(self.get_container(final)) == Directory:
+                dest = self.get_container(final)
+                name = final.split("/")[-1]
+
+                # Exit if dest exists
+                if dest.index(name) >= 0:
+                    var.exit_code = 1
+                    return False
+            
+            # Copy the file and apply the name
+            if dest and name:
+                copyObj = copy.deepcopy(self.get_sub(orig))
+                copyObj.name = name
+                dest.add(copyObj)
+                var.exit_code = 0
+                return True
+        
+        # Copy if source is folder
+        elif type(self.get_sub(orig)) == Directory:
+            dest = None
+            name = ""
+
+            # Print message if they're same, but continue program
+            if self.get_sub(orig) == self.get_sub(final):
+                if not fromMv:
+                    print("cp: cannot copy a directory, '{0}', into itself, '{0}/{1}'".format(orig, final.split("/")[-1]))
+                
+            # Check if moving into dir
+            if type(self.get_sub(final)) == Directory:
+                dest = self.get_sub(final)
+                name = self.get_sub(orig).name
+
+                # Exit if dest exists
+                if dest.index(name) >= 0:
+                    var.exit_code = 1
+                    return False
+
+            
+            # Check if moving and renaming
+            if not self.get_sub(final) and type(self.get_container(final)) == Directory:
+                dest = self.get_container(final)
+                name = final.split("/")[-1]
+
+                # Exit if dest exists
+                if dest.index(name) >= 0:
+                    var.exit_code = 1
+                    return False
+            
+            # Move and set name
+            if dest and name:
+                copyDir = copy.deepcopy(self.get_sub(orig))
+                copyDir.name = name
+                copyDir.container = dest
+                dest.add(copyDir)
+                var.exit_code = 0
+                return True
+        
         return False
+
+            
+        
     
     # Make new file
     def touch(self, path=""):

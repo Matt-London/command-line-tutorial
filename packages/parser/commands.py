@@ -432,55 +432,109 @@ def filesystem(command=""):
             verbose = True
             token.remove("--verbose")
 
+        # Make sure correct args
         if len(token) == 0:
             print("mv: missing file operand")
             var.exit_code = 1
             return True
-        
         elif len(token) == 1:
             print("mv: missing destination file operand after '{}'".format(token[0]))
             var.exit_code = 1
             return True
-        
-        # Look for two files for rename
-        if len(token) == 2:
-            var.workingDir.mv(token[0], token[1])
-            if verbose:
-                print("renamed '{}' -> '{}'".format(token[0], token[1]))
+
+        # If it has a dir at the end
+        if type(var.workingDir.get_sub(token[-1])) == Directory:
+            dest = token.pop(-1)
+            for arg in token:
+                # Make sure they're not the same
+                if var.workingDir.get_sub(dest) == var.workingDir.get_sub(arg):
+                    print("mv: cannot move '{0}' to a subdirectory of itself, '{0}/{1}'".format(dest, dest.split("/")[-1]))
+                    continue
+
+                if var.workingDir.mv(arg, dest):
+                    if verbose:
+                        print("renamed '{}' -> '{}'".format(arg, dest))
             var.exit_code = 0
             return True
-
-        # Grab destination
-        dest = None
-        if type(var.workingDir.get_sub(token[-1])) == Directory:
-            dest = var.workingDir.get_sub(token[-1])
-        else:
-            print("mv: target '{}' is not a directory".format(token[-1]))
-            var.exit_code = 1
-            return True
         
-        # Check if above failed somehow
-        if not dest:
-            print("MV ERROR IN COMMANDS")
-            var.exit_code = 1
-            return True
-
-        # Pop off the last index
-        destName = token.pop(-1)
-
-        # Loop through all files and dirs and move them
-        for arg in token:
-            if dest == var.workingDir.get_sub(arg):
-                print("mv: cannot move '{0}' to a subdirectory of itself, '{0}/{1}'".format(arg, arg.split("/")[-1]))    
-                continue
-            
-            if verbose:
-                print("renamed '{}' -> '{}'".format(arg, destName))
-
-            var.workingDir.mv(arg, destName)
-        var.exit_code = 0
+        else:
+            # Make sure there's just two args
+            if len(token) == 2:
+                if var.workingDir.mv(token[0], token[1]):
+                    if verbose:
+                        print("renamed '{}' -> '{}'".format(token[0], token[1]))
+                    var.exit_code = 0
+                    return True
+        
         return True
 
+    # cp command
+    elif token[0] == "cp":
+        token.pop(0)
+
+        verbose = False
+        recurse = False
+
+        if "-v" in token:
+            verbose = True
+            token.remove("-v")
+
+        if "--verbose" in token:
+            verbose = True
+            token.remove("--verbose")
+        
+        if "-r" in token:
+            recurse = True
+            token.remove("-r")
+
+        
+        # Make sure correct args
+        if len(token) == 0:
+            print("cp: missing file operand")
+            var.exit_code = 1
+            return True
+        elif len(token) == 1:
+            print("cp: missing destination file operand after '{}'".format(token[0]))
+            var.exit_code = 1
+            return True
+
+        # If it has a dir at the end
+        if type(var.workingDir.get_sub(token[-1])) == Directory:
+            dest = token.pop(-1)
+            for arg in token:
+                # Check if recurse if its a dir
+                if type(var.workingDir.get_sub(arg)) == Directory:
+                    if not recurse:
+                        print("cp: -r not specified; omitting directory '{}'".format(arg))
+                        var.exit_code = 1
+                        continue
+
+                # Make sure they're not the same
+                if var.workingDir.get_sub(dest) == var.workingDir.get_sub(arg):
+                    print("cp: cannot copy '{0}' to a subdirectory of itself, '{0}/{1}'".format(dest, dest.split("/")[-1]))
+                    continue
+
+                if var.workingDir.cp(arg, dest, recurse):
+                    if verbose:
+                        print("'{}' -> '{}'".format(arg, dest))
+            var.exit_code = 0
+            return True
+        
+        else:
+            # Make sure there's just two args
+            if len(token) == 2:
+                if not recurse and type(var.workingDir.get_sub(token[0])) == Directory:
+                    print("cp: -r not specified; omitting directory '{}'".format(token[0]))
+                    var.exit_code = 1
+                    return True
+
+                if var.workingDir.cp(token[0], token[1], recurse):
+                    if verbose:
+                        print("'{}' -> '{}'".format(token[0], token[1]))
+                    var.exit_code = 0
+                    return True
+        
+        return True
 
 
     # Save tokens and workingDir and head
