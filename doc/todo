@@ -1,2 +1,6 @@
-Implement cd, mv, echo, echo>, echo>>, cp
+Implement mv, cp
+
+MV DOES NOT WORK
+- It has significant trouble moving files and directories
+
 Rerun over Interpreter
