@@ -1,11 +1,13 @@
 from ..resources.colors import colors
+from ..resources import variables as var
 from .File import File
 
 class Directory:
     # Basic constructor
-    def __init__(self, name=""):
+    def __init__(self, name="", container=None):
         self.name = name
         self.contents = []
+        self.container = container
     
     # grabs index of contents by name
     def index(self, find):
@@ -44,6 +46,21 @@ class Directory:
         pathSplit = path.split("/")
         nextDir = self.index(pathSplit[0])
 
+        # Check if it's ../
+        if pathSplit[0] == "..":
+            pathSplit.pop(0)
+            path = "/".join(pathSplit)
+            if self.container == None:
+                return self.get_sub(path)
+            else:
+                return self.container.get_sub(path)
+        
+        # Check if it's ./
+        if pathSplit[0] == ".":
+            pathSplit.pop(0)
+            path = "/".join(pathSplit)
+            return self.get_sub(path)
+
         if nextDir < 0:
             return False
         
@@ -56,23 +73,21 @@ class Directory:
             return self.contents[nextDir].get_sub(path)
         
         # print("get_sub error")
+    
+    # Returns a string which is the path from this directory to the top
+    def get_path(self):
+        if self.container == None:
+            return self.name
+        
+        return self.container.get_path() + "/" + self.name
 
     # Like get_sub but it gives container
     def get_container(self, path=""):
-        if path == "":
+        toR = self.get_sub("/".join(path.split("/")[:-1]))
+        if toR == False:
             return self
-        
-        pathSplit = path.split("/")
-        nextDir = self.index(pathSplit[0])
+        return toR
 
-        if nextDir < 0:
-            return False
-        
-        pathSplit.pop(0)
-        path = "/".join(pathSplit)
-
-        if nextDir >= 0:
-            return self
         
 
     # Delete file/dir by name:
@@ -134,12 +149,12 @@ class Directory:
                 return False
             pathSplit = path.split("/")
             if len(pathSplit) == 1:
-                self.add(Directory(pathSplit[0]))
+                self.add(Directory(pathSplit[0], self))
                 return True
 
             name = pathSplit.pop()
             path = "/".join(pathSplit)
-            self.get_sub(path).add(Directory(name))
+            self.get_sub(path).add(Directory(name, self.get_sub(path)))
             return True
         return False
     
@@ -148,34 +163,90 @@ class Directory:
         # Print error for no operands
         if not orig and not final:
             print("mv: missing file operand")
+            var.exit_code = 1
             return False
         # Print error for one arg
         if not final:
             print("mv: missing destination file operand after '{}'".format(orig))
+            var.exit_code = 1
             return False
         
         if not self.get_sub(orig):
             print("mv: cannot stat '{}': No such file or directory".format(orig))
+            var.exit_code = 1
             return False
 
+        # Check if we're moving a file or dir
         if self.get_sub(final):
-            print("mv: destination exists")
-            return False
+            # Save from and to objects
+            fromf = self.get_sub(orig)
+            tof = self.get_sub(final)
 
+            if type(tof) == File:
+                print("mv: destination '{}' exists".format(final))
+                var.exit_code = 1
+                return False
+            elif type(tof) == Directory:
+                # Move if dir
+                if type(fromf) == Directory:
+                    tof.mkdir(fromf.name)
+                    tof.copy_from(fromf, "temp")
+                    newName = fromf.name
+                    self.delete(orig)
+                    self.get_sub(final + "/temp").name = newName
+                    var.exit_code = 0
+                    return True
+                # Move if file
+                elif type(self.get_sub(orig)) == File:
+                    tof.touch("temp")
+                    self.get_sub(final + "/temp").copy_from(fromf, "temp")
+                    newName = self.get_sub(orig).name
+                    self.delete(orig)
+                    self.get_sub(final + "/temp").name = newName
+                    var.exit_code = 0
+                    return True
+        # Check if looking for a move and a rename
+        elif type(self.get_container(final)) == Directory:
+            finalS = final.split("/")
+            name = finalS.pop(-1)
+
+            # Move if dir
+            if type(self.get_sub(orig)) == Directory:
+                self.get_container(final).mkdir(name)
+                self.get_container(final).copy_from(self.get_sub(orig), "temp")
+                self.delete(orig)
+                if len(finalS) >= 1:
+                    self.get_sub("/".join(finalS) + "/temp").name = name
+                else:
+                    self.get_sub("temp").name = name
+                var.exit_code = 0
+                return True
+            # Move if file
+            elif type(self.get_sub(orig)) == File:
+                self.get_sub(final).touch(name)
+                self.get_sub(final).copy_from(self.get_sub(orig), "temp")
+                self.delete(orig)
+                self.get_sub(final + "/temp").name = name
+                var.exit_code = 0
+                return True
+                
         if type(self.get_sub(orig)) == Directory:
             self.mkdir(final)
             self.get_sub(final).copy_from(self.get_sub(orig), final.split("/")[len(final.split("/")) - 1])
             self.delete(orig)
+            var.exit_code = 0
             return True
         
         elif type(self.get_sub(orig)) == File:
             self.touch(final)
             self.get_sub(final).copy_from(self.get_sub(orig), final.split("/")[len(final.split("/")) - 1])
             self.delete(orig)
+            var.exit_code = 0
             return True
         
         else:
             print("MV ERROR")
+            var.exit_code = 1
             return False
         return False
     
@@ -184,7 +255,11 @@ class Directory:
         if path:
             pathSplit = path.split("/")
             if len(pathSplit) == 1:
-                self.add(File(pathSplit[0]))
+                if self.index(pathSplit[0]) >= 0:
+                    return True
+                else:
+                    self.add(File(pathSplit[0]))
+                    return True
 
             name = pathSplit.pop()
             path = "/".join(pathSplit)
