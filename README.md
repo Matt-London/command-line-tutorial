@@ -32,6 +32,16 @@ For help with current level:
 $ level instruct
 ```
 
+To skip a level, if you already have the knowledge:
+```
+$ level skip
+```
+
+To revert to the previous level:
+```
+$ level back
+```
+
 To check if you have completed the level, and move on to the next level:
 ```
 $ level check
