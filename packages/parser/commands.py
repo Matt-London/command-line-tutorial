@@ -34,9 +34,6 @@ def game_process(command=""):
     currLevel = Level()
     if len(levels) >= var.currentLevel + 1:
         currLevel = levels[var.currentLevel]
-    else:
-        print("ERROR:\n var.currentLevel references a level that doesn't exist")
-        return False
 
     # Check if it's a level command
     if len(token) > 0 and token[0] == "level":
@@ -46,12 +43,12 @@ def game_process(command=""):
             return True
         
         # Check if user wants help
-        if command.lower() == "level help":
+        elif command.lower() == "level help":
             currLevel.help()
             return True
         
         # Check if user wants to check
-        if command.lower() == "level check":
+        elif command.lower() == "level check":
             # If check is successful
             if currLevel.check():
                 # Increment currnet Level
@@ -59,18 +56,81 @@ def game_process(command=""):
                 # If all levels are complete
                 if len(levels) < var.currentLevel + 1:
                     print("All levels completed!\nGreat job!")
-                    sys.exit(0)
+                    print("If you would like to go through again type: 'level reset'")
+                    return True
                 var.lev_bash_history.clear()
-                print("\nLevel complete!")
-                print("Level #{} instructions:".format(var.currentLevel))
+
+                # Set new level
+                currLevel = levels[var.currentLevel]
+
+                print("Level complete!")
+                print("Level #{} instructions:".format(var.currentLevel + 1))
                 currLevel.instruct()
             else:
                 print("Not quite complete yet. Keep trying!")
             
             return True
         
+        # Skip a level
+        elif command.lower() == "level skip":
+            print("Are you sure you want to skip this level? y/N")
+            confirm = str(input())
+
+            # Continue only if y is entered
+            if confirm == "y":
+                if var.currentLevel == len(levels):
+                    print("You have already completed the last level")
+                    return True
+                var.currentLevel += 1
+                var.lev_bash_history.clear()
+                print("Skipped")
+                return True
+            else:
+                print("Aborted")
+                return True
+        
+        # Jump back a level
+        elif command.lower() == "level back":
+            print("Are you sure you want to go back to the previous level? y/N")
+            confirm = str(input())
+
+            # Continue only if y is entered
+            if confirm == "y":
+                if var.currentLevel - 1 < 0:
+                    print("No previous level")
+                    return True
+                var.currentLevel -= 1
+                var.lev_bash_history.clear()
+                print("Reversed")
+                return True
+            else:
+                print("Aborted")
+                return True
+
+        # Give current level and number that remains
+        elif command.lower() == "level stat":
+            print("Completed level(s): {}\nRemaining level(s): {}".format(var.currentLevel, len(levels) - var.currentLevel))
+            return True
+
+        # Reset all the progress
+        elif command.lower() == "level reset":
+            # Confirm with the user
+            print("This will reset your progress back to level 1")
+            print("Are you sure you want to reset? y/N")
+            confirm = str(input())
+
+            # Continue only if y is entered
+            if confirm == "y":
+                var.currentLevel = 0
+                var.lev_bash_history.clear()
+                print("Reset")
+                return True
+            else:
+                print("Aborted")
+                return True
+        
         # Not a valid entered command
-        print("USAGE:\nlevel [OPTION]\n\ninstruct\tGet current level instructions\nhelp\t\tProvides help if the answer can't be found\ncheck\t\tChecks if the level is complete")
+        print("USAGE:\nlevel [OPTION]\n\ninstruct\tGet current level instructions\nhelp\t\tProvides help if the answer can't be found\ncheck\t\tChecks if the level is complete\nstat\t\tPrints the number of completed levels and how many remain\nskip\t\tSkip the current level\nback\t\tGo back to the previous level\nreset\t\tResets the game back to the first level")
         return True
     
     
@@ -338,7 +398,7 @@ def filesystem(command=""):
         return True
 
     # Kind of vim
-    elif token[0] == "vim" or token[0] == "nano":
+    elif token[0] == "edit":
         base = token.pop(0)
 
         overwrite = "-o" in token
