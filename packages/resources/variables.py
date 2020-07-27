@@ -2,6 +2,8 @@ from .colors import colors
 
 DEBUG = True # Defines if should run debug utilities
 
+colorPrompt = True # Defines if terminal colors should be displayed
+
 isRoot = False # If the user is root
 wd = "" # Current working directory
 user = "user" # Set username

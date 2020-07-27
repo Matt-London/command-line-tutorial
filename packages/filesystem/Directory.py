@@ -136,7 +136,10 @@ class Directory:
 
         for content in destContents:
             if type(content) == Directory:
-                print(colors.fg.blue + content.name + colors.reset + "\t", end="")
+                if var.colorPrompt:
+                    print(colors.fg.blue + content.name + colors.reset + "\t", end="")
+                else:
+                    print(content.name + "\t", end="")
             else:
                 print(content.name + "\t", end="")
         if lenContent != 0:

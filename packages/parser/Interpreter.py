@@ -23,7 +23,13 @@ class Interpreter:
     # Prompts and takes input, returns exit code
     def prompt(self):
         var.wd = self.workingDir.get_path()[1::]
-        ps1 = colors.fg.lightblue + var.username + colors.fg.darkgrey + "@" + colors.fg.red + var.hostname + colors.fg.lightcyan + ":" + colors.fg.cyan + "[~" + var.wd + "] " + colors.fg.black + "> " + colors.fg.pink + "$#  "[var.isRoot] + colors.reset # Sets PS1
+        ps1 = ""
+
+        if var.colorPrompt:
+            ps1 = colors.fg.lightblue + var.username + colors.fg.darkgrey + "@" + colors.fg.red + var.hostname + colors.fg.lightcyan + ":" + colors.fg.cyan + "[~" + var.wd + "] " + colors.fg.black + "> " + colors.fg.pink + "$#  "[var.isRoot] + colors.reset # Sets PS1
+        else:
+            ps1 = var.username + "@" + var.hostname + ":" + "[~" + var.wd + "] " + "> " + "$#  "[var.isRoot] # Sets PS1
+
         print(ps1, end=" ")
         self.command = str(input())
         return self.process(self.command)
