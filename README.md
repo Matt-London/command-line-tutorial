@@ -2,6 +2,13 @@
 
 This is a simple program which will teach the user how to use the command line. It consists of various levels detailed later.
 
+## Videos
+How to use the program:
+[Tutorial](https://youtu.be/9gw2sbGTrOQ)
+
+Source code walkthrough:
+[Walkthrough](https://youtu.be/ph-5mFYEtFw)
+
 ## Executing
 
 You can do the following to execute:
