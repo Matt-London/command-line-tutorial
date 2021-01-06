@@ -1,6 +1,6 @@
 # command-line-tutorial
 
-This is a simple program which will teach the user how to use the command line. It consists of various levels detailed later.
+This is a simple program that will teach the user how to use the command line. It consists of various levels with increasing complexity. Follow the instructions under the "Levels" header in order to get level instructions, help, and to submit the solution. Within this program, there is a framework that simulates a GNU/Linux Bash terminal using Python. Due to the simulation route, this is compatible with any OS, provided there is an install of Python3.7+. Learn and have fun!
 
 ## Videos
 How to use the program:
